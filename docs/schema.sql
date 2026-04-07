@@ -39,6 +39,16 @@ CREATE TABLE IF NOT EXISTS compute_requests (
   created_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Burn events log
+CREATE TABLE IF NOT EXISTS burn_events (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tx_signature    TEXT UNIQUE NOT NULL,
+  wallet          TEXT NOT NULL,
+  token_amount    BIGINT NOT NULL,
+  credits_issued  BIGINT NOT NULL,
+  created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- RPC function: increment earned balance (upsert)
 CREATE OR REPLACE FUNCTION increment_balance(p_wallet TEXT, p_amount BIGINT)
 RETURNS VOID AS $$
@@ -57,5 +67,16 @@ BEGIN
   UPDATE wallets
   SET claimed_balance = claimed_balance + p_amount
   WHERE address = p_wallet;
+END;
+$$ LANGUAGE plpgsql;
+
+-- RPC function: increment compute credits (upsert by wallet)
+CREATE OR REPLACE FUNCTION increment_compute_credits(p_wallet TEXT, p_credits BIGINT)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO compute_keys (key, wallet, token_balance)
+  VALUES (p_wallet, p_wallet, p_credits)
+  ON CONFLICT (key)
+  DO UPDATE SET token_balance = compute_keys.token_balance + p_credits;
 END;
 $$ LANGUAGE plpgsql;
