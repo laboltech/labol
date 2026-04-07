@@ -7,6 +7,7 @@ const miningRoutes  = require('./routes/mining');
 const computeRoutes = require('./routes/compute');
 const statsRoutes   = require('./routes/stats');
 const burnRoutes    = require('./routes/burn');
+const apiKeyRoutes  = require('./routes/apikeys');
 const { initRelay } = require('./relay/manager');
 
 const app  = express();
@@ -21,6 +22,7 @@ app.use('/v1',         miningRoutes);
 app.use('/v1',         computeRoutes);
 app.use('/v1',         statsRoutes);
 app.use('/v1/burn',    burnRoutes);
+app.use('/v1/apikeys', apiKeyRoutes);
 
 // Health
 app.get('/health', (req, res) => {
